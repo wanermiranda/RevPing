@@ -196,7 +196,8 @@ void check2Forward(u_char *packetptr){
 			totalPacketSize = (packetptr  - backupPacketPtr);
 			printf(" Packet Size (Payload dstIP: %lu): %d bytes\n", dstIP, totalPacketSize);
 
-			probeSend(_source_ip, dstIP, ttl, NULL, 0);
+			//probeSend(_source_ip, dstIP, ttl, NULL, 0);
+			printf(" ------- \n");
 
 		}
 		break;

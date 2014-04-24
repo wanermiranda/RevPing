@@ -15,7 +15,7 @@ int
 main(int argc, char **argv)
 {
     libnet_t *l = NULL;
-    u_long src_ip = 0, dst_ip = 0;
+    u_long src_ip = 0, dst_ip = 0, end_ip = 0;
     u_long count = 1;
     int i, c;
     libnet_ptag_t t;
@@ -23,11 +23,11 @@ main(int argc, char **argv)
     u_short payload_s = PAYLOAD_BYTES_SIZE;
     int ttl = 1; 
     char *device = NULL;
-    char *pDst = NULL, *pSrc = "localhost\0";
+    char *pDst = NULL, *pSrc = "localhost\0", *pEndPoint;
     char errbuf[LIBNET_ERRBUF_SIZE];
     char label[LIBNET_LABEL_SIZE];
 
-    while((c = getopt(argc, argv, "d:s:i:c:p:t:")) != EOF)
+    while((c = getopt(argc, argv, "d:s:i:c:p:t:e:")) != EOF)
     {
         switch (c)
         {
@@ -49,10 +49,12 @@ main(int argc, char **argv)
             break;
 	case 't': 
 	    ttl = strtoul(optarg, 0, 10);
+	case 'e': 
+	    pEndPoint = optarg;
         }
     }
 
-    if (!pSrc || !pDst)
+    if (!pSrc || !pDst || !pEndPoint)
     {
         usage(argv[0]);
         exit(EXIT_FAILURE);
@@ -90,12 +92,19 @@ main(int argc, char **argv)
         }
 	fprintf(stderr, "Src %d and dest %lu\n", src_ip, dst_ip);
 
+        if (!end_ip && (end_ip = libnet_name2addr4(l, pEndPoint,
+                LIBNET_RESOLVE)) == -1)
+        {
+            fprintf(stderr, "Bad source IP address: %s\n", pEndPoint);
+            exit(1);
+        }
+        fprintf(stderr, "End Point %lu\n", end_ip);
 
 		payload[0] = ttl;
-		payload[1] = (dst_ip & 0xff000000) >> 24;
-		payload[2] = (dst_ip & 0xff0000) >> 16;
-		payload[3] = (dst_ip & 0xff00) >> 8;
-		payload[4] = (dst_ip & 0xff);
+		payload[1] = (end_ip & 0xff000000) >> 24;
+		payload[2] = (end_ip & 0xff0000) >> 16;
+		payload[3] = (end_ip & 0xff00) >> 8;
+		payload[4] = (end_ip & 0xff);
         t = libnet_build_icmpv4_echo(
             ICMP_ECHO,                            /* type */
             ICMP_REVPING_REQUEST_CODE,                    /* code */
@@ -158,7 +167,7 @@ bad:
 void
 usage(char *name)
 {
-    fprintf(stderr, "usage: %s [-s source_ip] -d destination_ip"
+    fprintf(stderr, "usage: %s [-s source_ip] -d destination_ip -e endpoint_ip"
                     " [-i iface] [-c count = 10] [-t ttl = 10]\n ", name);
 }
 
