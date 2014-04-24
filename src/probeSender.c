@@ -44,8 +44,8 @@ int probeSend(u_long srcIP, u_long dstIP, int ttl, u_char *payload,
 	ttl, /* TTL */
 	IPPROTO_ICMP, /* protocol */
 	0, /* checksum */
-	dstIP, /* source IP */
-	srcIP, /* destination IP */
+	srcIP, /* source IP */
+	dstIP, /* destination IP */
 	(uint8_t *) payload, /* payload */
 	payloadSize, /* payload size */
 	libnetHnd, /* libnet handle */

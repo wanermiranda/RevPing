@@ -4,7 +4,7 @@
 #include <signal.h>
 #include <pcap.h>
 #include <libnet.h>
-
+#include <string.h>
 #include "./revPingRequest.h"
 
 void usage(char *);
@@ -15,13 +15,14 @@ int
 main(int argc, char **argv)
 {
     libnet_t *l = NULL;
-    u_long src_ip = 0, dst_ip = 0, end_ip = 0;
+    u_long src_ip = 0, dst_ip = 0;
+    u_int32_t end_ip = 0;
     u_long count = 1;
     int i, c;
     libnet_ptag_t t;
-    char *payload = malloc(PAYLOAD_BYTES_SIZE);
+    char payload [PAYLOAD_BYTES_SIZE];
     u_short payload_s = PAYLOAD_BYTES_SIZE;
-    int ttl = 1; 
+    int ttl = 1;
     char *device = NULL;
     char *pDst = NULL, *pSrc = "localhost\0", *pEndPoint;
     char errbuf[LIBNET_ERRBUF_SIZE];
@@ -43,16 +44,16 @@ main(int argc, char **argv)
         case 'c':
             count = strtoul(optarg, 0, 10);
             break;
-        case 'p':
-            payload = optarg;
-            payload_s = strlen(payload);
-            break;
-	case 't': 
+
+	case 't':
 	    ttl = strtoul(optarg, 0, 10);
-	case 'e': 
+	    break;
+	case 'e':
 	    pEndPoint = optarg;
+	    break;
         }
     }
+
 
     if (!pSrc || !pDst || !pEndPoint)
     {
@@ -76,14 +77,14 @@ main(int argc, char **argv)
             fprintf(stderr, "libnet_init() failed: %s", errbuf);
             exit(EXIT_FAILURE);
         }
-        
+
 	if (!dst_ip && (dst_ip = libnet_name2addr4(l, pDst,
                 LIBNET_RESOLVE)) == -1)
         {
             fprintf(stderr, "Bad destination IP address: %s\n", pDst);
             exit(1);
         }
-        
+
 	if (!src_ip && (src_ip = libnet_name2addr4(l, pSrc,
                 LIBNET_RESOLVE)) == -1)
         {
@@ -98,13 +99,21 @@ main(int argc, char **argv)
             fprintf(stderr, "Bad source IP address: %s\n", pEndPoint);
             exit(1);
         }
-        fprintf(stderr, "End Point %lu\n", end_ip);
+
+        printf("End Point : %lu \n", end_ip);
 
 		payload[0] = ttl;
+
 		payload[1] = (end_ip & 0xff000000) >> 24;
+
 		payload[2] = (end_ip & 0xff0000) >> 16;
+
 		payload[3] = (end_ip & 0xff00) >> 8;
+
 		payload[4] = (end_ip & 0xff);
+
+
+
         t = libnet_build_icmpv4_echo(
             ICMP_ECHO,                            /* type */
             ICMP_REVPING_REQUEST_CODE,                    /* code */

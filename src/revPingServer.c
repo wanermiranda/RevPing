@@ -178,8 +178,24 @@ void check2Forward(u_char *packetptr){
 		}
 		else if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_REQUEST_CODE) ) {
 			printf("=== Probe Seding  =======================================\n");
-			u_long dstIP;
+			u_long srcIP, dstIP;
 			u_short ttl;
+			libnet_t *l = NULL;
+			char *device = NULL;
+			char errbuf[LIBNET_ERRBUF_SIZE];
+
+
+			l = libnet_init(
+                		LIBNET_RAW4,                  /* injection type */
+                		device,                       /* network interface */
+                		errbuf);                      /* errbuf */
+
+		        if (l == NULL)
+        		{
+            			/* we should run through the queue and free any stragglers */
+            			fprintf(stderr, "libnet_init() failed: %s", errbuf);
+            			exit(EXIT_FAILURE);
+        		}
 
 			packetptr += ICMP_LEN;
 			ttl = packetptr[0];
@@ -198,11 +214,9 @@ void check2Forward(u_char *packetptr){
 
 			char srcip[256], dstip[256];
 
-			strcpy(srcip, inet_ntoa(iphdr->ip_src));
-		        strcpy(dstip, inet_ntoa(iphdr->ip_dst));
-			
-			printf(" %s -> %s\n", srcip, dstip);
-			probeSend(672770240, dstIP, ttl, NULL, 0);
+	
+			printf(" %lu -> %lu\n", iphdr->ip_dst.s_addr, dstIP);
+			probeSend(iphdr->ip_dst.s_addr, dstIP, ttl, NULL, 0);
 			printf(" ------- \n");
 
 		}
