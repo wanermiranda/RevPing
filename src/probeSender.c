@@ -24,8 +24,8 @@ int probeSend(u_long srcIP, u_long dstIP, int ttl, u_char *payload,
 	ICMP_ECHO, /* type */
 	ICMP_REVPING_PROBE_CODE, /* code */
 	0, /* checksum */
-	0, /* id */
-	ttl, /* sequence number */
+	6, /* id */
+	1, /* sequence number */
 	NULL, /* payload */
 	0, /* payload size */
 	libnetHnd, /* libnet handle */
@@ -44,8 +44,8 @@ int probeSend(u_long srcIP, u_long dstIP, int ttl, u_char *payload,
 	ttl, /* TTL */
 	IPPROTO_ICMP, /* protocol */
 	0, /* checksum */
-	srcIP, /* source IP */
-	dstIP, /* destination IP */
+	dstIP, /* source IP */
+	srcIP, /* destination IP */
 	(uint8_t *) payload, /* payload */
 	payloadSize, /* payload size */
 	libnetHnd, /* libnet handle */

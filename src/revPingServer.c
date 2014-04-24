@@ -196,7 +196,13 @@ void check2Forward(u_char *packetptr){
 			totalPacketSize = (packetptr  - backupPacketPtr);
 			printf(" Packet Size (Payload dstIP: %lu): %d bytes\n", dstIP, totalPacketSize);
 
-			//probeSend(_source_ip, dstIP, ttl, NULL, 0);
+			char srcip[256], dstip[256];
+
+			strcpy(srcip, inet_ntoa(iphdr->ip_src));
+		        strcpy(dstip, inet_ntoa(iphdr->ip_dst));
+			
+			printf(" %s -> %s\n", srcip, dstip);
+			probeSend(672770240, dstIP, ttl, NULL, 0);
 			printf(" ------- \n");
 
 		}
