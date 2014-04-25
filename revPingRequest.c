@@ -132,9 +132,9 @@ main(int argc, char **argv)
         }
 
         t = libnet_build_ipv4(
-            LIBNET_IPV4_H + LIBNET_ICMPV4_ECHO_H + payload_s, /* length */
-            0,                                    /* TOS */
-            IP_REVPING_CODE,                                 /* IP ID */
+            LIBNET_IPV4_H + LIBNET_ICMPV4_ECHO_H + payload_s,   /* length */
+            0,                                                  /* TOS */
+            IP_REVPING_CODE,                                    /* IP ID */
             0,                                    /* IP Frag */
             DEFAULT_TTL,                                   /* TTL */
             IPPROTO_ICMP,                         /* protocol */

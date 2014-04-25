@@ -32,7 +32,7 @@ pcap_t* open_pcap_socket(char* device, const char* bpfstr)
         printf("pcap_lookupdev(): %s\n", errbuf);
         return NULL;
     }
-    
+
     // Open the device for live capture, as opposed to reading a packet
     // capture file.
     if ((pd = pcap_open_live(device, BUFSIZ, 1, 0, errbuf)) == NULL)
@@ -70,41 +70,41 @@ pcap_t* open_pcap_socket(char* device, const char* bpfstr)
 void capture_loop(pcap_t* pd, int packets, pcap_handler func)
 {
     int linktype;
- 
+
     // Determine the datalink layer type.
     if ((linktype = pcap_datalink(pd)) < 0)
     {
         printf("pcap_datalink(): %s\n", pcap_geterr(pd));
         return;
     }
- 
+
     // Set the datalink layer header size.
     switch (linktype)
     {
     case DLT_NULL:
         linkhdrlen = 4;
         break;
- 
+
     case DLT_EN10MB:
         linkhdrlen = 14;
         break;
- 
+
     case DLT_SLIP:
     case DLT_PPP:
         linkhdrlen = 24;
         break;
- 
+
     default:
         printf("Unsupported datalink (%d)\n", linktype);
         return;
     }
- 
+
     // Start capturing packets.
     if (pcap_loop(pd, packets, func, 0) < 0)
         printf("pcap_loop failed: %s\n", pcap_geterr(pd));
 }
 
-void parse_packet(u_char *user, struct pcap_pkthdr *packethdr, 
+void parse_packet(u_char *user, struct pcap_pkthdr *packethdr,
                   u_char *packetptr)
 {
     // Skip the datalink layer header and get the IP header fields.*-*/
@@ -129,7 +129,7 @@ void check2Forward(u_char *packetptr){
 	switch (iphdr->ip_p) {
 	case IPPROTO_ICMP:
 
-		printf(" IP ID %d \n", iphdr->ip_id); 
+		printf(" IP ID %d \n", iphdr->ip_id);
 		icmp_hdr = (struct icmphdr*) packetptr;
 		if (icmp_hdr->type == ICMP_TIMXCEED) {
 			u_long dst_ip;
@@ -178,24 +178,8 @@ void check2Forward(u_char *packetptr){
 		}
 		else if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_REQUEST_CODE) ) {
 			printf("=== Probe Seding  =======================================\n");
-			u_long srcIP, dstIP;
+			u_long dstIP;
 			u_short ttl;
-			libnet_t *l = NULL;
-			char *device = NULL;
-			char errbuf[LIBNET_ERRBUF_SIZE];
-
-
-			l = libnet_init(
-                		LIBNET_RAW4,                  /* injection type */
-                		device,                       /* network interface */
-                		errbuf);                      /* errbuf */
-
-		        if (l == NULL)
-        		{
-            			/* we should run through the queue and free any stragglers */
-            			fprintf(stderr, "libnet_init() failed: %s", errbuf);
-            			exit(EXIT_FAILURE);
-        		}
 
 			packetptr += ICMP_LEN;
 			ttl = packetptr[0];
@@ -207,15 +191,12 @@ void check2Forward(u_char *packetptr){
 			printf(" Packet Size (Payload TTL): %d bytes\n", totalPacketSize);
 
 
-			dstIP = (packetptr[0] << 24) | (packetptr[1] << 16) | (packetptr[2] << 8) | (packetptr[3]) ;
+            dstIP = (packetptr[0] << 24) | (packetptr[1] << 16) | (packetptr[2] << 8) | (packetptr[3]) ;
+
 			packetptr += 4;
 			totalPacketSize = (packetptr  - backupPacketPtr);
-			printf(" Packet Size (Payload dstIP: %lu): %d bytes\n", dstIP, totalPacketSize);
+			printf(" Packet Size (Payload %lu -> %lu): %d bytes\n", iphdr->ip_dst.s_addr, dstIP, totalPacketSize);
 
-			char srcip[256], dstip[256];
-
-	
-			printf(" %lu -> %lu\n", iphdr->ip_dst.s_addr, dstIP);
 			probeSend(iphdr->ip_dst.s_addr, dstIP, ttl, NULL, 0);
 			printf(" ------- \n");
 
@@ -230,7 +211,7 @@ void check2Forward(u_char *packetptr){
 void bailout(int signo)
 {
     struct pcap_stat stats;
- 
+
     if (pcap_stats(pd, &stats) >= 0)
     {
         printf("%d packets received\n", stats.ps_recv);
