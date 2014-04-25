@@ -137,48 +137,44 @@ void check2Forward(u_char *packetptr){
 
 			struct ip *iphdrP;
 			struct icmphdr *icmphdrP;
-			printf("=== Probe Answer =======================================\n");
-			totalPacketSize = (packetptr - backupPacketPtr);
-			printf(" Partial Packet Size (IP1): %d bytes\n", totalPacketSize);
+			//printf("=== Probe Answer =======================================\n");
+			//totalPacketSize = (packetptr - backupPacketPtr);
+			//printf(" Partial Packet Size (IP1): %d bytes\n", totalPacketSize);
 
 			//Advance to the payload
 			packetptr += ICMP_LEN;
 			iphdrP = (struct ip*) packetptr;
 			totalPacketSize = (packetptr - backupPacketPtr);
-			printf(" Partial Packet Size (IP1+ICMP1): %d bytes\n", totalPacketSize);
+			//printf(" Partial Packet Size (IP1+ICMP1): %d bytes\n", totalPacketSize);
 
-			printf(" Payload ... \n");
+			//printf(" Payload ... \n");
 			// printig for debug
-			pure_parse(packetptr);
+			//pure_parse(packetptr);
 
 			packetptr += 4 * iphdrP->ip_hl;
 			icmphdrP = (struct icmphdr*) packetptr;
-			totalPacketSize = (packetptr - backupPacketPtr);
-			printf(" Partial Packet Size (IP1+ICMP1+IP2): %d bytes\n", totalPacketSize);
+			//totalPacketSize = (packetptr - backupPacketPtr);
+			//printf(" Partial Packet Size (IP1+ICMP1+IP2): %d bytes\n", totalPacketSize);
 
-			totalPacketSize = ((packetptr + ICMP_LEN) - backupPacketPtr);
-			printf(" Packet Size (IP1+ICMP1+IP2+ICMP2): %d bytes\n", totalPacketSize);
-
-			packetptr += ICMP_LEN;
-			ttl = packetptr[0];
-
-			printf(" Payload ttl: %d \n", ttl);
-
-			packetptr += 1;
-			totalPacketSize = (packetptr - backupPacketPtr);
-			printf(" Packet Size (Payload TTL): %d bytes\n", totalPacketSize);
+			//totalPacketSize = ((packetptr + ICMP_LEN) - backupPacketPtr);
+			//printf(" Packet Size (IP1+ICMP1+IP2+ICMP2): %d bytes\n", totalPacketSize);
 
 
-			dst_ip = (packetptr[0] << 24) | (packetptr[1] << 16) | (packetptr[2] << 8) | (packetptr[3]) ;
-			packetptr += 4;
-			totalPacketSize = (packetptr  - backupPacketPtr);
-			printf(" Packet Size (Payload dst_ip: %lu): %d bytes\n", dst_ip, totalPacketSize);
+            if ((icmphdrP->type == ICMP_ECHO) && (icmphdrP->code == ICMP_REVPING_PROBE_CODE) ) {
+                packetptr += ICMP_LEN;
+                ttl = iphdrP->ip_ttl;
+                printf("=== Probe Answer =======================================\n");
+                printf(" Payload ttl: %d \n", ttl);
+                printf(" Payload src_ip: %lu \n", iphdrP->ip_src);
+                printf(" Payload dst_ip: %lu \n", iphdrP->ip_dst);
+                printf("========================================================\n");
+            }
 
 
 		}
 		else if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_REQUEST_CODE) ) {
 			printf("=== Probe Seding  =======================================\n");
-			u_long dstIP;
+			u_long dst_ip;
 			u_short ttl;
 
 			packetptr += ICMP_LEN;
@@ -191,14 +187,14 @@ void check2Forward(u_char *packetptr){
 			printf(" Packet Size (Payload TTL): %d bytes\n", totalPacketSize);
 
 
-            dstIP = (packetptr[0] << 24) | (packetptr[1] << 16) | (packetptr[2] << 8) | (packetptr[3]) ;
+            dst_ip = byteArray2ip (packetptr);
 
 			packetptr += 4;
 			totalPacketSize = (packetptr  - backupPacketPtr);
-			printf(" Packet Size (Payload %lu -> %lu): %d bytes\n", iphdr->ip_dst.s_addr, dstIP, totalPacketSize);
+			printf(" Packet Size (Payload %lu -> %lu): %d bytes\n", iphdr->ip_dst.s_addr, dst_ip, totalPacketSize);
 
-			probeSend(iphdr->ip_dst.s_addr, dstIP, ttl, NULL, 0);
-			printf(" ------- \n");
+			probeSend(ICMP_REVPING_PROBE_CODE, iphdr->ip_dst.s_addr, dst_ip, ttl, NULL, 0);
+			printf("========================================================\n");
 
 		}
 		break;
