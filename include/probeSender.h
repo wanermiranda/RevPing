@@ -8,7 +8,7 @@
 #define ICMP_REVPING_RESULTS_CODE 0X48
 #define DEFAULT_TTL 64
 
-int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, u_char *payload,
+int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
 		u_short payloadSize);
 
 #endif /* PROBESENDER_H_ */

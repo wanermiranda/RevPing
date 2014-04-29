@@ -1,7 +1,7 @@
 #include <libnet.h>
 #include "../include/probeSender.h"
 
-int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, u_char *payload,
+int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
 		u_short payloadSize) {
 
 	libnet_ptag_t libnetpTag;
@@ -26,8 +26,8 @@ int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, u_char *
 	0, /* checksum */
 	6, /* id */
 	1, /* sequence number */
-	NULL, /* payload */
-	0, /* payload size */
+	(uint8_t *) payload, /* payload */
+	payloadSize, /* payload size */
 	libnetHnd, /* libnet handle */
 	0);
 	if (libnetpTag == -1) {
@@ -46,8 +46,8 @@ int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, u_char *
 	0, /* checksum */
 	srcIP, /* source IP */
 	dstIP, /* destination IP */
-	(uint8_t *) payload, /* payload */
-	payloadSize, /* payload size */
+	NULL, /* payload */
+	0, /* payload size */
 	libnetHnd, /* libnet handle */
 	0);
 	if (libnetpTag == -1) {

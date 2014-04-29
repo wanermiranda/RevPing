@@ -161,6 +161,7 @@ void check2Forward(u_char *packetptr){
 
 
             if ((icmphdrP->type == ICMP_ECHO) && (icmphdrP->code == ICMP_REVPING_PROBE_CODE) ) {
+                pure_parse(packetptr);
                 packetptr += ICMP_LEN;
                 ttl = iphdrP->ip_ttl;
                 printf("=== Probe Answer =======================================\n");
@@ -168,6 +169,8 @@ void check2Forward(u_char *packetptr){
                 printf(" Payload src_ip: %lu \n", iphdrP->ip_src);
                 printf(" Payload dst_ip: %lu \n", iphdrP->ip_dst);
                 printf("========================================================\n");
+
+
             }
 
 
