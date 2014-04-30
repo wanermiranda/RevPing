@@ -12,7 +12,7 @@ RM = rm -f
 
 OBJ = netUtils.o packetParser.o revPingServer.o probeSender.o mainRevPingServer.o
 
-OBJ_CLIENT = netUtils.o packetParser.o revPingRequest.o probeSender.o revPingServer.o
+OBJ_CLIENT = netUtils.o packetParser.o mainRevPingRequest.o probeSender.o revPingServer.o
 
 VALGRIND = valgrind --tool=memcheck --leak-check=yes --show-reachable=yes
 

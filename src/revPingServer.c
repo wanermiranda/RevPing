@@ -101,7 +101,7 @@ void capture_loop(pcap_t* pd, int packets, pcap_handler func)
 
 	// Start capturing packets.
 	if (pcap_loop(pd, packets, func, 0) < 0)
-		printf("pcap_loop failed: %s\n", pcap_geterr(pd));
+		printf("pcap_loop exited: %s\n", pcap_geterr(pd));
 }
 
 void bailout(int signo)
