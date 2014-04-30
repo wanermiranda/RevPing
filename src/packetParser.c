@@ -26,30 +26,32 @@ void pure_parse(u_char *packetptr) {
 	iphdr = (struct ip*) packetptr;
 	strcpy(srcip, inet_ntoa(iphdr->ip_src));
 	strcpy(dstip, inet_ntoa(iphdr->ip_dst));
-	sprintf(iphdrInfo, "ID:%d TOS:0x%x, TTL:%d IpLen:%d DgLen:%d",
-			ntohs(iphdr->ip_id), iphdr->ip_tos, iphdr->ip_ttl, 4 * iphdr->ip_hl,
-			ntohs(iphdr->ip_len));
 
 
 	// Advance to the transport layer header then parse and display
 	packetptr += 4 * iphdr->ip_hl;
 	switch (iphdr->ip_p) {
-	case IPPROTO_ICMP:
-		icmphdr = (struct icmphdr*) packetptr;
+		case IPPROTO_ICMP:
+			icmphdr = (struct icmphdr*) packetptr;
+                        printf("------------ Parsing Packet ------------------------------------=\n"); 
+
+			printf("ID:%d TOS:0x%x, TTL:%d IpLen:%d DgLen:%d \n",
+					ntohs(iphdr->ip_id), iphdr->ip_tos, iphdr->ip_ttl, 4 * iphdr->ip_hl,
+					ntohs(iphdr->ip_len));
 
 
-		printf("ICMP %s -> %s\n", srcip, dstip);
-		memcpy(&id, (u_char*) icmphdr + 4, 2);
-		memcpy(&seq, (u_char*) icmphdr + 6, 2);
-		printf("Type:%d Code:%d ID:%d Seq:%d\n", icmphdr->type,
-				icmphdr->code, ntohs(id), ntohs(seq));
+			printf("ICMP %s -> %s\n", srcip, dstip);
+			memcpy(&id, (u_char*) icmphdr + 4, 2);
+			memcpy(&seq, (u_char*) icmphdr + 6, 2);
+			printf("Type:%d Code:%d ID:%d Seq:%d\n", icmphdr->type,
+					icmphdr->code, ntohs(id), ntohs(seq));
 
-		// if there is a time exceed message, just read the payload.
-		if (icmphdr->type == ICMP_TIMXCEED) {
-			pure_parse(packetptr + ICMP_LEN);
+			// if there is a time exceed message, just read the payload.
+			if (icmphdr->type == ICMP_TIMXCEED) {
+				pure_parse(packetptr + ICMP_LEN);
 
-		}
-
-		break;
+			}
+                        printf("------------ End Parsing --------------------------------------=\n");
+			break;
 	}
 }

@@ -8,8 +8,6 @@
 #ifndef REVPINGSERVER_H_
 #define REVPINGSERVER_H_
 
-#define PAYLOAD_BYTES_SIZE 9
-#define ICMP_REVPING 0x47
 
 pcap_t* pd;
 int linkhdrlen;

@@ -10,9 +10,9 @@ LIBS = -lnet -lpcap -lcap
 
 RM = rm -f
 
-OBJ = netUtils.o packetParser.o revPingServer.o probeSender.o main.o
+OBJ = netUtils.o packetParser.o revPingServer.o probeSender.o mainRevPingServer.o
 
-OBJ_CLIENT = netUtils.o revPingRequest.o probeSender.o
+OBJ_CLIENT = netUtils.o packetParser.o revPingRequest.o probeSender.o revPingServer.o
 
 VALGRIND = valgrind --tool=memcheck --leak-check=yes --show-reachable=yes
 

@@ -97,7 +97,7 @@ main(int argc, char **argv)
 
     ip2ByteArray(end_ip, (payload+1));
 
-    printf("End Point Debug: %lu \n", byteArray2ip((payload+1)));
+    printf("End Point and ttl : %lu - %d\n", byteArray2ip(payload+1), payload[0]);      
 
     probeSend(ICMP_REVPING_REQUEST_CODE, src_ip, dst_ip, DEFAULT_TTL, payload, PAYLOAD_BYTES_SIZE);
 
@@ -112,7 +112,7 @@ void
 usage(char *name)
 {
     fprintf(stderr, "usage: %s [-s source_ip] -d destination_ip -e endpoint_ip"
-            " [-i iface] [-c count = 10] [-t ttl = 10]\n ", name);
+            " [-t ttl = 10]\n ", name);
 }
 
 /* EOF */
