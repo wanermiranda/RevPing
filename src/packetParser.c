@@ -14,7 +14,20 @@
 #include <netinet/ip_icmp.h>
 #include "../include/packetParser.h"
 
-void pure_parse(u_char *packetptr) {
+void icmp_ext(u_char *packetptr)
+{
+  uint32_t mpls_exp; 
+  unsigned long mpls_label; 
+  // skipping the header and going to the mpls tags
+  mpls_label = ((unsigned long)packetptr[4]<<12) +
+    ((unsigned int)packetptr[5]<<4) + ((packetptr[6]>>4) & 0xff); 
+  mpls_exp = (packetptr[6] >> 1) & 0x7;
+
+  printf("\n Label %lu, exp %d \n", mpls_label, mpls_exp);
+
+}
+
+void pure_parse(u_char *packetptr, uint32_t len) {
 	struct ip* iphdr;
 	struct icmphdr* icmphdr;
 	struct tcphdr* tcphdr;
@@ -45,10 +58,10 @@ void pure_parse(u_char *packetptr) {
 			memcpy(&seq, (u_char*) icmphdr + 6, 2);
 			printf("Type:%d Code:%d ID:%d Seq:%d\n", icmphdr->type,
 					icmphdr->code, ntohs(id), ntohs(seq));
-
+                        printf("Size: %d \n", len);
 			// if there is a time exceed message, just read the payload.
 			if (icmphdr->type == ICMP_TIMXCEED) {
-				pure_parse(packetptr + ICMP_LEN);
+				pure_parse(packetptr + ICMP_LEN,len);
 
 			}
                         printf("------------ End Parsing --------------------------------------=\n");

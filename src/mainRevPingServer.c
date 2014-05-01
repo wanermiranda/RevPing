@@ -17,18 +17,19 @@ void parse_packet(u_char *user, struct pcap_pkthdr *packethdr,
 		u_char *packetptr)
 {
 	// Skip the datalink layer header and get the IP header fields.*-*/
+        //printf("Caplen %d, len %d \n", packethdr->caplen, packethdr->len);
 	packetptr += linkhdrlen;
-	check2Forward(packetptr);
+	check2Forward(packetptr, packethdr->len);
 }
 
-void check2Forward(u_char *packetptr){
+void check2Forward(u_char *packetptr, uint32_t len){
 	struct ip *iphdr;
 	struct icmphdr *icmp_hdr;
 	u_char *backupPacketPtr = packetptr;
 	long totalPacketSize = 0;
 
 	// printig for debug
-	pure_parse(packetptr);
+	pure_parse(packetptr,len);
 
 	iphdr = (struct ip*) packetptr;
 	// advance to get the next hdr
@@ -71,7 +72,7 @@ void check2Forward(u_char *packetptr){
 
                     if ((icmphdrP->type == ICMP_ECHO) && (icmphdrP->code == ICMP_REVPING_PROBE_CODE) ) {
                       u_long dst_ip; 
-                      pure_parse(packetptr);
+                      pure_parse(packetptr,len);
                       packetptr += ICMP_LEN;
                       ttl = iphdrP->ip_ttl;
                       printf("=== Probe Answer =======================================\n");
@@ -86,7 +87,7 @@ void check2Forward(u_char *packetptr){
                       dst_ip = byteArray2ip (packetptr);
                       packetptr += IP_SIZE; 
                       totalPacketSize = (packetptr  - backupPacketPtr);
-                      probeSend(ICMP_REVPING_RESULTS_CODE, iphdr->ip_dst.s_addr, dst_ip, DEFAULT_TTL, backupPacketPtr, totalPacketSize);	
+                      probeSend(ICMP_REVPING_RESULTS_CODE, iphdr->ip_dst.s_addr, dst_ip, DEFAULT_TTL, backupPacketPtr, len);	
 
 
                     }
@@ -127,7 +128,7 @@ void check2Forward(u_char *packetptr){
                   else if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_RESULTS_CODE) ) {
                     printf("=== Request Answer  =======================================\n");
                     packetptr += ICMP_LEN; 		
-                    pure_parse(packetptr); 
+                    pure_parse(packetptr,len); 
 
                     struct ip *iphdrP1; 
                     struct icmphdr *icmphdrP1;

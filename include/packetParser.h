@@ -12,7 +12,7 @@
 #define IP_LEN sizeof(struct iphdr)
 #define ICMP_LEN sizeof(struct icmphdr)
 
-void pure_parse(u_char *packetptr);
-
+void pure_parse(u_char *packetptr, uint32_t len);
+void icmp_ext(u_char *packetptr); 
 
 #endif /* PACKET_PARSER_H_ */

@@ -62,9 +62,9 @@ int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *pa
     fprintf(stderr, "Write error: %s\n", libnet_geterror(libnetHnd));
     goto bad;
   } else {
-    fprintf(stderr, "Wrote %d byte ICMP packet from context \"%s\"; "
+    /*fprintf(stderr, "Wrote %d byte ICMP packet from context \"%s\"; "
         "check the wire.\n", queueResult,
-        libnet_cq_getlabel(libnetHnd));
+        libnet_cq_getlabel(libnetHnd));*/
   }
 
   return (EXIT_SUCCESS);

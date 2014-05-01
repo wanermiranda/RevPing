@@ -12,7 +12,7 @@
 pcap_t* pd;
 int linkhdrlen;
 
-void check2Forward(u_char *packetptr);
+void check2Forward(u_char *packetptr, uint32_t len);
 
 pcap_t* open_pcap_socket(char* device, const char* bpfstr);
 

@@ -9,27 +9,32 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
+#include <time.h>
 #include "../include/revPingServer.h"
 #include "../include/probeSender.h"
 #include "../include/revPingRequest.h"
 #include "../include/netUtils.h"
 #include "../include/packetParser.h"
 #define PAYLOAD_BYTES_SIZE 9
+#define TIMEOUT 1.5
+
+
+static clock_t probeStarted; 
 
 void parse_packet(u_char *user, struct pcap_pkthdr *packethdr,
     u_char *packetptr)
 {
   // Skip the datalink layer header and get the IP header fields.*-*/
   packetptr += linkhdrlen;
-  check2Forward(packetptr);
+  check2Forward(packetptr, packethdr->len);
 }
 
-void check2Forward(u_char *packetptr){
+void check2Forward(u_char *packetptr, uint32_t len){
   struct ip *iphdr;
   struct icmphdr *icmp_hdr;
   u_char *backupPacketPtr = packetptr;
   long totalPacketSize = 0;
-
+  double elapsed = 0; 
   // printig for debug
   //pure_parse(packetptr);
 
@@ -50,6 +55,7 @@ void check2Forward(u_char *packetptr){
         struct ip *iphdrP1; 
         struct icmphdr *icmphdrP1;
         char hopIP[256]; 
+        uint32_t size; 
         int seq; 
 
         iphdrP1 = (struct ip*) packetptr;
@@ -70,7 +76,13 @@ void check2Forward(u_char *packetptr){
         memcpy(&seq, (u_char*) icmphdrP2 + 6, 2);
 
         printf("Hop %d -> %s \n", ntohs(seq), hopIP); 
-      
+        // packet size + the probe payload size
+        packetptr += ICMP_LEN + IP_SIZE;
+        size = packetptr - backupPacketPtr;
+        printf("Size %lu actual size %lu ", len, size);
+        if (len > 188) {
+          icmp_ext(backupPacketPtr + 188); 
+        }
         //printf("===========================================================\n");
         pcap_breakloop(pd); 
 
@@ -78,6 +90,12 @@ void check2Forward(u_char *packetptr){
       break;
   }
 
+  elapsed = ((double)(clock() - probeStarted) / CLOCKS_PER_SEC); 
+  //printf ("elapsed : %4.2f,  %lu - %lu \/ %lu \n", elapsed, clock(), probeStarted, CLOCKS_PER_SEC); 
+  if ( elapsed > TIMEOUT ) {
+    printf(" Timed out \n"); 
+    pcap_breakloop(pd); 
+  }
 }
 
 
@@ -167,12 +185,13 @@ main(int argc, char **argv)
 
   ip2ByteArray(end_ip, (payload+1));
   int ttl; 
-  for (ttl = 1; ttl <= maxTTL; ttl++) 
+  for (ttl = maxTTL; ttl <= maxTTL; ttl++) 
     if ((pd = open_pcap_socket(interface, bpfstr)))
     {
       payload[0] = ttl;
       printf("Send request with maxttl : %lu - %d\n", byteArray2ip(payload+1), payload[0]);
-      probeSend(ICMP_REVPING_REQUEST_CODE, src_ip, dst_ip, ttl, payload, PAYLOAD_BYTES_SIZE);
+      probeStarted = clock(); 
+      probeSend(ICMP_REVPING_REQUEST_CODE, src_ip, dst_ip, DEFAULT_TTL, payload, PAYLOAD_BYTES_SIZE);
       signal(SIGINT, bailout);
       signal(SIGTERM, bailout);
       signal(SIGQUIT, bailout);
