@@ -1,8 +1,8 @@
 #include <libnet.h>
 #include "../include/probeSender.h"
 
-int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
-    u_short payloadSize) {
+int probeSend(uint32_t icmp_type, uint32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
+    u_short payloadSize, u_short id) {
 
   libnet_ptag_t libnetpTag;
   libnet_t *libnetHnd = NULL;
@@ -21,10 +21,10 @@ int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *pa
   }
 
   libnetpTag = libnet_build_icmpv4_echo(
-      ICMP_ECHO, /* type */
+      icmp_type, /* type */
       icmp_code, /* code */
       0, /* checksum */
-      icmp_code, /* id */
+      id, /* id */
       ttl, /* sequence number */
       (uint8_t *) payload, /* payload */
       payloadSize, /* payload size */
@@ -39,7 +39,7 @@ int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *pa
   libnetpTag = libnet_build_ipv4(
       LIBNET_IPV4_H + LIBNET_ICMPV4_ECHO_H + payloadSize, /* length */
       0, /* TOS */
-      IP_REVPING_CODE, /* IP ID */
+      id, /* IP ID */
       0, /* IP Frag */
       ttl, /* TTL */
       IPPROTO_ICMP, /* protocol */

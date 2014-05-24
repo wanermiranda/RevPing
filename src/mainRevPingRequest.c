@@ -36,7 +36,7 @@ void check2Forward(u_char *packetptr, uint32_t len){
   long totalPacketSize = 0;
   double elapsed = 0; 
   // printig for debug
-  //pure_parse(packetptr);
+  //pure_parse(packetptr, len);
 
   iphdr = (struct ip*) packetptr;
   // advance to get the next hdr
@@ -47,7 +47,7 @@ void check2Forward(u_char *packetptr, uint32_t len){
     case IPPROTO_ICMP:
 
       icmp_hdr = (struct icmphdr*) packetptr;
-      if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_RESULTS_CODE) ) {
+      if ((icmp_hdr->type == 0) && (icmp_hdr->code == ICMP_REVPING_REQUEST_CODE) && (len > 110) ) {
         //printf("=== Request Answer  =======================================\n");
         packetptr += ICMP_LEN; 		
         //pure_parse(packetptr); 
@@ -76,8 +76,7 @@ void check2Forward(u_char *packetptr, uint32_t len){
         memcpy(&seq, (u_char*) icmphdrP2 + 6, 2);
 
         printf("Hop %d -> %s \n", ntohs(seq), hopIP); 
-        // packet size + the probe payload size
-        packetptr += ICMP_LEN + IP_SIZE;
+        packetptr += ICMP_LEN;
         size = packetptr - backupPacketPtr;
         printf("Size %lu actual size %lu ", len, size);
         if (len > 188) {
@@ -191,7 +190,7 @@ main(int argc, char **argv)
       payload[0] = ttl;
       printf("Send request with maxttl : %lu - %d\n", byteArray2ip(payload+1), payload[0]);
       probeStarted = clock(); 
-      probeSend(ICMP_REVPING_REQUEST_CODE, src_ip, dst_ip, DEFAULT_TTL, payload, PAYLOAD_BYTES_SIZE);
+      probeSend(ICMP_ECHO, ICMP_REVPING_REQUEST_CODE, src_ip, dst_ip, DEFAULT_TTL, payload, PAYLOAD_BYTES_SIZE, 0);
       signal(SIGINT, bailout);
       signal(SIGTERM, bailout);
       signal(SIGQUIT, bailout);

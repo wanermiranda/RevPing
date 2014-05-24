@@ -9,7 +9,9 @@
 #define DEFAULT_TTL 64
 #define IP_SIZE 4
 
-int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
-		u_short payloadSize);
+/*int probeSend(u_int32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
+		u_short payloadSize);*/
+int probeSend(uint32_t icmp_type , uint32_t icmp_code, u_long srcIP, u_long dstIP, int ttl, char *payload,
+    u_short payloadSize, u_short id);
 
 #endif /* PROBESENDER_H_ */

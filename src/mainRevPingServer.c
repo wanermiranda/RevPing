@@ -13,6 +13,18 @@
 #include "../include/netUtils.h"
 #include "../include/packetParser.h"
 
+#define MAX_SLOTS  256
+
+u_char ip_matrix[MAX_SLOTS][4];
+u_short ip_slots = 0; 
+
+u_short get_slot()
+{
+  ip_slots ++; 
+  if (ip_slots > 255) ip_slots = 0; 
+  return ip_slots; 
+}
+
 void parse_packet(u_char *user, struct pcap_pkthdr *packethdr,
 		u_char *packetptr)
 {
@@ -71,8 +83,10 @@ void check2Forward(u_char *packetptr, uint32_t len){
 
 
                     if ((icmphdrP->type == ICMP_ECHO) && (icmphdrP->code == ICMP_REVPING_PROBE_CODE) ) {
-                      u_long dst_ip; 
-                      pure_parse(packetptr,len);
+                      u_long dst_ip;
+                      u_short probe_id = ntohs(iphdrP->ip_id); 
+                      //memcpy(&probe_id, (u_char *) icmphdrP + 4, 2);
+                     // pure_parse(packetptr,len);
                       packetptr += ICMP_LEN;
                       ttl = iphdrP->ip_ttl;
                       printf("=== Probe Answer =======================================\n");
@@ -84,10 +98,14 @@ void check2Forward(u_char *packetptr, uint32_t len){
                       printf(" Payload src_ip: %lu \n", iphdrP->ip_src);
                       printf(" Payload dst_ip: %lu \n", iphdrP->ip_dst);
                       printf("========================================================\n");
-                      dst_ip = byteArray2ip (packetptr);
+                    
+                      printf("Probe id %d received \n", probe_id);   
+                      dst_ip = byteArray2ip (ip_matrix[probe_id]);
+
+                      printf("dest ip %d \n", dst_ip); 
                       packetptr += IP_SIZE; 
                       totalPacketSize = (packetptr  - backupPacketPtr);
-                      probeSend(ICMP_REVPING_RESULTS_CODE, iphdr->ip_dst.s_addr, dst_ip, DEFAULT_TTL, backupPacketPtr, len);	
+                      probeSend(0, ICMP_REVPING_REQUEST_CODE, iphdr->ip_dst.s_addr, dst_ip, DEFAULT_TTL, backupPacketPtr, len, 0);	
 
 
                     }
@@ -95,10 +113,10 @@ void check2Forward(u_char *packetptr, uint32_t len){
 
                   }
                   else if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_REQUEST_CODE) ) {
-                    printf("=== Probe Seding  =======================================\n");
+                    printf("=== Probe Sending  =======================================\n");
                     u_long dst_ip;
                     u_char payload[IP_SIZE]; 
-                    u_short ttl;
+                    u_short ttl, id; 
 
                     packetptr += ICMP_LEN;
                     ttl = packetptr[0];
@@ -113,20 +131,22 @@ void check2Forward(u_char *packetptr, uint32_t len){
                     totalPacketSize = (packetptr - backupPacketPtr);
                     printf(" Packet Size (Payload TTL): %d bytes\n", totalPacketSize);
 
-
+                    id = get_slot(); 
                     dst_ip = byteArray2ip (packetptr);
-                    ip2ByteArray(iphdr->ip_src.s_addr, payload);
+                    printf("Probe id %d sent\n", id); 
+                    ip2ByteArray(iphdr->ip_src.s_addr, ip_matrix[id]);
+                    //ip2ByteArray(iphdr->ip_src.s_addr, payload);
 
                     packetptr += 4;
                     totalPacketSize = (packetptr  - backupPacketPtr);
                     printf(" Packet Size (Payload %lu -> %lu): %d bytes\n", iphdr->ip_dst.s_addr, dst_ip, totalPacketSize);
 
-                    probeSend(ICMP_REVPING_PROBE_CODE, iphdr->ip_dst.s_addr, dst_ip, ttl, payload, IP_SIZE);
+                    probeSend(ICMP_ECHO, ICMP_REVPING_PROBE_CODE, iphdr->ip_dst.s_addr, dst_ip, ttl, NULL, 0, id);
                     printf("========================================================\n");
 
                   }
                   else if ((icmp_hdr->type == ICMP_ECHO) && (icmp_hdr->code == ICMP_REVPING_RESULTS_CODE) ) {
-                    printf("=== Request Answer  =======================================\n");
+                    printf("=== Client Request Answer  =======================================\n");
                     packetptr += ICMP_LEN; 		
                     pure_parse(packetptr,len); 
 
